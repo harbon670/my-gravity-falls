@@ -13,105 +13,175 @@
     }
     
     body {
-      background: #1a3f2a;
+      background: #2a5a3a;
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
-      font-family: 'Courier New', monospace;
+      font-family: 'Comic Sans MS', 'Chalkboard SE', 'Courier New', monospace;
       touch-action: none;
+      padding: 8px;
     }
     
     #game-container {
-      max-width: 340px;
+      max-width: 360px;
       width: 100%;
-      background: #5a4a3a;
-      padding: 10px;
+      background: #f9e9c9;
+      padding: 15px 12px;
+      border-radius: 40px 40px 20px 20px;
       border: 6px solid #b58b4a;
-      border-radius: 0;
-      box-shadow: 8px 8px 0 #2a1e0a;
+      box-shadow: 0 12px 0 #8b691f, 0 15px 20px rgba(0,0,0,0.3);
+    }
+    
+    #header {
+      background: #ffd966;
+      border-radius: 30px 30px 15px 15px;
+      padding: 12px 10px;
+      margin-bottom: 15px;
+      border-bottom: 6px solid #b58b4a;
+      text-align: center;
+    }
+    
+    h1 {
+      font-size: 22px;
+      color: #2a5a2a;
+      text-shadow: 3px 3px 0 #e9b13b;
+      margin-bottom: 10px;
+      letter-spacing: 2px;
     }
     
     #stats {
-      background: #2a4a2a;
-      border: 4px solid #e9b13b;
-      padding: 10px;
-      margin-bottom: 10px;
+      background: #2a5a2a;
+      border-radius: 50px;
+      padding: 10px 20px;
       display: flex;
       justify-content: space-between;
-      font-size: 14px;
+      font-size: 18px;
       font-weight: bold;
-      color: #e9b13b;
-      text-shadow: 2px 2px 0 #1a3f1a;
+      color: #ffd966;
+      border: 3px solid #e9b13b;
+      box-shadow: inset 0 -3px 0 #1a3f1a;
+    }
+    
+    .stat-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
     
     canvas {
       display: block;
       width: 100%;
       aspect-ratio: 300/350;
-      border: 4px solid #8b5a1a;
+      border-radius: 30px;
+      border: 5px solid #b58b4a;
       cursor: pointer;
-      background: transparent;
+      background: #87CEEB;
+      box-shadow: 0 8px 0 #8b691f;
+      margin-bottom: 12px;
+    }
+    
+    #control-panel {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    
+    .btn {
+      flex: 1;
+      background: #ffd966;
+      border: none;
+      border-bottom: 6px solid #b58b4a;
+      border-radius: 40px;
+      padding: 14px 0;
+      font-size: 18px;
+      font-weight: bold;
+      color: #2a5a2a;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.05s ease;
+      text-align: center;
+      box-shadow: 0 4px 0 #8b691f;
+    }
+    
+    .btn:active {
+      transform: translateY(4px);
+      border-bottom-width: 2px;
+    }
+    
+    .btn.pause {
+      background: #ffb366;
+      color: #3a2a1a;
     }
     
     #guide {
-      background: #2a4a2a;
-      border: 4px solid #e9b13b;
-      padding: 8px;
-      margin-top: 10px;
+      background: #2a5a2a;
+      border-radius: 30px;
+      padding: 12px 10px;
+      border: 4px solid #ffd966;
       display: flex;
       justify-content: center;
       gap: 20px;
+      flex-wrap: wrap;
     }
     
     .guide-item {
       display: flex;
       align-items: center;
       gap: 8px;
-      background: #1a3f1a;
-      padding: 5px 12px;
-      border: 2px solid #8ac96a;
-      color: #ffd966;
-      font-size: 12px;
-    }
-    
-    .bad-item {
-      border: 2px solid #c96a6a;
-      background: #3f1a1a;
-    }
-    
-    .guide-img {
-      width: 24px;
-      height: 24px;
-      object-fit: contain;
-    }
-    
-    .start-btn {
-      background: #e9b13b;
-      border: 4px solid #8b691f;
-      padding: 10px;
-      margin-top: 10px;
-      text-align: center;
+      background: #ffd966;
+      padding: 6px 15px;
+      border-radius: 40px;
+      border-bottom: 4px solid #b58b4a;
       font-size: 14px;
       font-weight: bold;
       color: #1a3f1a;
-      cursor: pointer;
     }
     
-    .start-btn:active {
-      background: #c99a2a;
+    .guide-bad {
+      background: #ffb366;
+    }
+    
+    .guide-img {
+      width: 30px;
+      height: 30px;
+      object-fit: contain;
+      border-radius: 10px;
+    }
+    
+    #message {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 14px;
+      color: #2a5a2a;
+      font-weight: bold;
+      min-height: 20px;
     }
   </style>
 </head>
 <body>
 
 <div id="game-container">
-  <div id="stats">
-    <span>✨ ОЧКИ: <span id="score">0</span></span>
-    <span>❤️ ЖИЗНИ: <span id="lives">3</span></span>
+  <div id="header">
+    <h1>🏚️ ХИЖИНА ЧУДЕС 🏚️</h1>
+    <div id="stats">
+      <div class="stat-box">
+        <span>✨</span>
+        <span id="score">0</span>
+      </div>
+      <div class="stat-box">
+        <span>❤️</span>
+        <span id="lives">3</span>
+      </div>
+    </div>
   </div>
   
   <canvas width="300" height="350" id="gameCanvas"></canvas>
+  
+  <div id="control-panel">
+    <button class="btn" id="startBtn">🚀 СТАРТ</button>
+    <button class="btn pause" id="pauseBtn">⏸️ ПАУЗА</button>
+  </div>
   
   <div id="guide">
     <div class="guide-item">
@@ -130,38 +200,45 @@
       <img class="guide-img" src="https://raw.githubusercontent.com/harbon670/my-gravity-falls/main/pixel_art_large-4.png" alt="Кристалл" onerror="this.style.display='none'; this.nextSibling.textContent='🔮';">
       <span>+10</span>
     </div>
-    <div class="guide-item bad-item">
+    <div class="guide-item guide-bad">
       <img class="guide-img" src="https://raw.githubusercontent.com/harbon670/my-gravity-falls/main/pixel_art_large-4.png" alt="Хлам" onerror="this.style.display='none'; this.nextSibling.textContent='📦';">
       <span>-1</span>
     </div>
   </div>
   
-  <div class="start-btn" id="startBtn">👇 НАЖМИ СТАРТ 👇</div>
+  <div id="message">👉 Нажми СТАРТ, чтобы начать охоту за артефактами!</div>
 </div>
 
 <script>
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
   
+  // Игровые переменные
   let score = 0;
   let lives = 3;
+  let gameActive = false;      // true = игра идёт
+  let gamePaused = false;      // true = пауза
   let gameOver = false;
-  let gameStarted = false;
   let objects = [];
   let spawnTimer = 0;
+  
+  // Элементы интерфейса
+  const startBtn = document.getElementById('startBtn');
+  const pauseBtn = document.getElementById('pauseBtn');
+  const messageDiv = document.getElementById('message');
   
   // Загружаем фоновое изображение
   const bgImage = new Image();
   bgImage.src = 'https://raw.githubusercontent.com/harbon670/my-gravity-falls/main/pixel_art_large.png';
   bgImage.crossOrigin = 'Anonymous';
   
-  // Загружаем картинки предметов
+  // Загружаем картинки предметов (увеличены на 10%: 33px вместо 30)
   const itemImages = {
-    'diary1': loadImage('https://raw.githubusercontent.com/harbon670/my-gravity-falls/main/pixel_art_large-3.png'),
-    'diary2': loadImage('https://raw.githubusercontent.com/harbon670/my-gravity-falls/main/pixel_art_large-2.png'),
-    'diary3': loadImage('https://raw.githubusercontent.com/harbon670/my-gravity-falls/main/pixel_art_large-1.png'),
-    'crystal': loadImage('https://raw.githubusercontent.com/harbon670/my-gravity-falls/main/pixel_art_large-4.png'),
-    'trash': loadImage('https://raw.githubusercontent.com/harbon670/my-gravity-falls/main/pixel_art_large-4.png') // Замените, если есть другая картинка
+    diary1: loadImage('https://raw.githubusercontent.com/harbon670/my-gravity-falls/main/pixel_art_large-3.png'),
+    diary2: loadImage('https://raw.githubusercontent.com/harbon670/my-gravity-falls/main/pixel_art_large-2.png'),
+    diary3: loadImage('https://raw.githubusercontent.com/harbon670/my-gravity-falls/main/pixel_art_large-1.png'),
+    crystal: loadImage('https://raw.githubusercontent.com/harbon670/my-gravity-falls/main/pixel_art_large-4.png'),
+    trash: loadImage('https://raw.githubusercontent.com/harbon670/my-gravity-falls/main/pixel_art_large-4.png') // Замените, если есть другая картинка
   };
   
   function loadImage(src) {
@@ -171,17 +248,18 @@
     return img;
   }
   
-  // Предметы
+  // Предметы с размером 33px (+10%)
   const items = [
-    { img: itemImages.diary1, type: 'good', width: 30, height: 30 },
-    { img: itemImages.diary2, type: 'good', width: 30, height: 30 },
-    { img: itemImages.diary3, type: 'good', width: 30, height: 30 },
-    { img: itemImages.crystal, type: 'good', width: 30, height: 30 },
-    { img: itemImages.trash, type: 'bad', width: 30, height: 30 }
+    { img: itemImages.diary1, type: 'good', width: 33, height: 33 },
+    { img: itemImages.diary2, type: 'good', width: 33, height: 33 },
+    { img: itemImages.diary3, type: 'good', width: 33, height: 33 },
+    { img: itemImages.crystal, type: 'good', width: 33, height: 33 },
+    { img: itemImages.trash, type: 'bad', width: 33, height: 33 }
   ];
 
+  // Создание нового предмета
   function spawnItem() {
-    if(!gameStarted || gameOver) return;
+    if(!gameActive || gamePaused || gameOver) return;
     let item = items[Math.floor(Math.random() * items.length)];
     objects.push({
       img: item.img,
@@ -194,31 +272,11 @@
     });
   }
 
+  // Обработка кликов по canvas
   canvas.addEventListener('pointerdown', (e) => {
     e.preventDefault();
     
-    if(!gameStarted) {
-      gameStarted = true;
-      gameOver = false;
-      score = 0;
-      lives = 3;
-      objects = [];
-      document.getElementById('score').innerText = score;
-      document.getElementById('lives').innerText = lives;
-      document.getElementById('startBtn').style.opacity = '0.5';
-      return;
-    }
-    
-    if(gameOver) {
-      gameStarted = true;
-      gameOver = false;
-      score = 0;
-      lives = 3;
-      objects = [];
-      document.getElementById('score').innerText = score;
-      document.getElementById('lives').innerText = lives;
-      return;
-    }
+    if(!gameActive || gamePaused || gameOver) return;
     
     const rect = canvas.getBoundingClientRect();
     const mx = (e.clientX - rect.left) * (300/rect.width);
@@ -234,7 +292,11 @@
         } else {
           lives--;
           document.getElementById('lives').innerText = lives;
-          if(lives <= 0) gameOver = true;
+          if(lives <= 0) {
+            gameOver = true;
+            gameActive = false;
+            messageDiv.innerText = '💔 О нет! Хижина закрылась... Нажми СТАРТ';
+          }
         }
         objects.splice(i, 1);
         return;
@@ -242,6 +304,35 @@
     }
   });
 
+  // Кнопка СТАРТ
+  startBtn.addEventListener('click', () => {
+    gameActive = true;
+    gamePaused = false;
+    gameOver = false;
+    score = 0;
+    lives = 3;
+    objects = [];
+    document.getElementById('score').innerText = score;
+    document.getElementById('lives').innerText = lives;
+    messageDiv.innerText = '🎮 Игра началась! Собирай дневники и кристаллы!';
+    pauseBtn.innerText = '⏸️ ПАУЗА';
+  });
+
+  // Кнопка ПАУЗА
+  pauseBtn.addEventListener('click', () => {
+    if(!gameActive || gameOver) return;
+    
+    gamePaused = !gamePaused;
+    if(gamePaused) {
+      pauseBtn.innerText = '▶️ СТАРТ';
+      messageDiv.innerText = '⏸️ Пауза. Нажми СТАРТ, чтобы продолжить';
+    } else {
+      pauseBtn.innerText = '⏸️ ПАУЗА';
+      messageDiv.innerText = '🎮 Игра продолжается!';
+    }
+  });
+
+  // Игровой цикл
   function gameLoop() {
     requestAnimationFrame(gameLoop);
     
@@ -253,32 +344,51 @@
       ctx.fillRect(0, 0, 300, 350);
     }
     
-    if(!gameStarted) {
-      ctx.fillStyle = 'rgba(0,0,0,0.6)';
-      ctx.fillRect(0, 0, 300, 350);
-      ctx.fillStyle = '#ffd966';
-      ctx.font = 'bold 14px "Courier New", monospace';
-      ctx.fillText('НАЧАТЬ?', 110, 170);
+    // Если игра не активна
+    if(!gameActive) {
+      if(!gameOver) {
+        ctx.fillStyle = 'rgba(0,0,0,0.5)';
+        ctx.fillRect(0, 0, 300, 350);
+        ctx.fillStyle = '#ffd966';
+        ctx.font = 'bold 18px "Comic Sans MS", cursive';
+        ctx.fillText('🏚️ ХИЖИНА', 70, 160);
+        ctx.font = '16px "Comic Sans MS", cursive';
+        ctx.fillText('ЖДЁТ ТЕБЯ!', 85, 210);
+      }
       return;
     }
     
+    // Если игра на паузе
+    if(gamePaused) {
+      ctx.fillStyle = 'rgba(0,0,0,0.3)';
+      ctx.fillRect(0, 0, 300, 350);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 24px "Comic Sans MS", cursive';
+      ctx.fillText('⏸️', 130, 180);
+      return;
+    }
+    
+    // Если игра окончена
     if(gameOver) {
       ctx.fillStyle = 'rgba(0,0,0,0.7)';
       ctx.fillRect(0, 0, 300, 350);
-      ctx.fillStyle = '#ff6b6b';
-      ctx.font = 'bold 16px "Courier New", monospace';
-      ctx.fillText('GAME OVER', 60, 160);
+      ctx.fillStyle = '#ffb366';
+      ctx.font = 'bold 22px "Comic Sans MS", cursive';
+      ctx.fillText('GAME OVER', 50, 160);
       ctx.fillStyle = '#ffd966';
-      ctx.fillText('ОЧКИ: ' + score, 90, 210);
+      ctx.font = '18px "Comic Sans MS", cursive';
+      ctx.fillText('очки: ' + score, 110, 220);
       return;
     }
     
+    // Спавн предметов
     spawnTimer++;
     if(spawnTimer > 90) {
       spawnItem();
       spawnTimer = 0;
     }
     
+    // Рисуем и двигаем предметы
     for(let i=objects.length-1; i>=0; i--) {
       let obj = objects[i];
       obj.y -= obj.speed;
@@ -291,7 +401,11 @@
         if(obj.type === 'good') {
           lives--;
           document.getElementById('lives').innerText = lives;
-          if(lives <= 0) gameOver = true;
+          if(lives <= 0) {
+            gameOver = true;
+            gameActive = false;
+            messageDiv.innerText = '💔 Игра окончена! Нажми СТАРТ';
+          }
         }
         objects.splice(i, 1);
       }
