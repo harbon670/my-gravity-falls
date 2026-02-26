@@ -5,6 +5,7 @@
   <title>Gravity Falls: Хижина Чудес</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <style>
+    /* Стили без изменений */
     * {
       margin: 0;
       padding: 0;
@@ -152,6 +153,17 @@
       font-weight: bold;
       min-height: 18px;
     }
+
+    #difficulty-indicator {
+      background: #2a5a2a;
+      color: #ffd966;
+      padding: 2px 8px;
+      border-radius: 30px;
+      font-size: 11px;
+      font-weight: bold;
+      border: 2px solid #e9b13b;
+      white-space: nowrap;
+    }
   </style>
 </head>
 <body>
@@ -159,22 +171,25 @@
 <div id="game-container">
   <div id="header">
     <h1>🏚️ ХИЖИНА ЧУДЕС</h1>
-    <div id="stats">
-      <div class="stat-box">
-        <span>✨</span>
-        <span id="score">0</span>
+    <div style="display: flex; gap: 5px;">
+      <div id="stats">
+        <div class="stat-box">
+          <span>✨</span>
+          <span id="score">0</span>
+        </div>
+        <div class="stat-box">
+          <span>❤️</span>
+          <span id="lives">3</span>
+        </div>
       </div>
-      <div class="stat-box">
-        <span>❤️</span>
-        <span id="lives">3</span>
-      </div>
+      <div id="difficulty-indicator">🌟 1x</div>
     </div>
   </div>
   
   <canvas width="300" height="330" id="gameCanvas"></canvas>
   
   <div id="control-panel">
-    <button class="btn" id="startBtn">🚀 СТАРТ</button>
+    <button class="btn" id="startBtn" disabled>🚀 ЗАГРУЗКА...</button>
     <button class="btn pause" id="pauseBtn">⏸️ ПАУЗА</button>
   </div>
   
@@ -184,283 +199,431 @@
       <span>+10</span>
     </div>
     <div class="guide-item">
-      <img class="guide-img" src="https://raw.githubusercontent.com/harbon670/my-gravity-falls/main/pixel_art_large-2.png" alt="Дневник" onerror="this.style.display='none'; this.nextSibling.textContent='📕';">
-      <span>+10</span>
-    </div>
-    <div class="guide-item">
-      <img class="guide-img" src="https://raw.githubusercontent.com/harbon670/my-gravity-falls/main/pixel_art_large-1.png" alt="Дневник" onerror="this.style.display='none'; this.nextSibling.textContent='📘';">
-      <span>+10</span>
-    </div>
-    <div class="guide-item">
-      <img class="guide-img" src="https://raw.githubusercontent.com/harbon670/my-gravity-falls/main/pixel_art_large-4.png" alt="Кристалл" onerror="this.style.display='none'; this.nextSibling.textContent='🔮';">
+      <img class="guide-img" src="https://raw.githubusercontent.com/harbon670/my-gravity-falls/main/pixel_art_large-5.png" alt="Кристалл" onerror="this.style.display='none'; this.nextSibling.textContent='🔮';">
       <span>+10</span>
     </div>
     <div class="guide-item guide-bad">
-      <img class="guide-img" src="https://raw.githubusercontent.com/harbon670/my-gravity-falls/main/pixel_art_large-4.png" alt="Хлам" onerror="this.style.display='none'; this.nextSibling.textContent='📦';">
+      <img class="guide-img" src="https://raw.githubusercontent.com/harbon670/my-gravity-falls/main/pixel_art_large-6.png" alt="Хлам" onerror="this.style.display='none'; this.nextSibling.textContent='📦';">
       <span>-1</span>
     </div>
   </div>
   
-  <div id="message">👉 Нажми СТАРТ, чтобы начать!</div>
+  <div id="message">👉 Идёт загрузка ресурсов...</div>
 </div>
 
 <script>
-  const canvas = document.getElementById('gameCanvas');
-  const ctx = canvas.getContext('2d');
-  
-  // Игровые переменные
-  let score = 0;
-  let lives = 3;
-  let gameActive = false;
-  let gamePaused = false;
-  let gameOver = false;
-  let objects = [];
-  let spawnTimer = 0;
-  
-  // Обидные фразы Билла (каждый раз разные)
-  const billPhrases = [
-    'ХА-ХА! СЛАБАК!',
-    'ДОГОВОР НЕ ДЕЙСТВИТЕЛЕН!',
-    'Ты не в своей лиге, детка!',
-    'Расслабься, коротышка. Я здесь!',
-    'РЕАЛЬНОСТЬ СЛОМАНА!',
-    'ФОРМА И ПУСТОТА!',
-    'ХИЖИНА ИСЧЕЗЛА!',
-    'ТЫ НЕ СПАСЕШЬ МИР!'
-  ];
-  
-  // Текущая фраза Билла
-  let currentBillPhrase = billPhrases[0];
-  
-  // Элементы интерфейса
-  const startBtn = document.getElementById('startBtn');
-  const pauseBtn = document.getElementById('pauseBtn');
-  const messageDiv = document.getElementById('message');
-  
-  // Загружаем GIF-фон
-  const bgImage = new Image();
-  bgImage.src = 'https://raw.githubusercontent.com/harbon670/my-gravity-falls/main/mystery_shack.gif';
-  bgImage.crossOrigin = 'Anonymous';
-  
-  // Картинки предметов (33px)
-  const itemImages = {
-    diary1: loadImage('https://raw.githubusercontent.com/harbon670/my-gravity-falls/main/pixel_art_large-3.png'),
-    diary2: loadImage('https://raw.githubusercontent.com/harbon670/my-gravity-falls/main/pixel_art_large-2.png'),
-    diary3: loadImage('https://raw.githubusercontent.com/harbon670/my-gravity-falls/main/pixel_art_large-1.png'),
-    crystal: loadImage('https://raw.githubusercontent.com/harbon670/my-gravity-falls/main/pixel_art_large-4.png'),
-    trash: loadImage('https://raw.githubusercontent.com/harbon670/my-gravity-falls/main/pixel_art_large-5.png')
-  };
-  
-  function loadImage(src) {
-    const img = new Image();
-    img.src = src;
-    img.crossOrigin = 'Anonymous';
-    return img;
-  }
-  
-  const items = [
-    { img: itemImages.diary1, type: 'good', width: 33, height: 43 },
-    { img: itemImages.diary2, type: 'good', width: 33, height: 43 },
-    { img: itemImages.diary3, type: 'good', width: 33, height: 43 },
-    { img: itemImages.crystal, type: 'bad', width: 33, height: 43 },
-    { img: itemImages.trash, type: 'bad', width: 33, height: 43 }
-  ];
+  (function() {
+    // --- Элементы DOM ---
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreSpan = document.getElementById('score');
+    const livesSpan = document.getElementById('lives');
+    const startBtn = document.getElementById('startBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const messageDiv = document.getElementById('message');
+    const difficultyIndicator = document.getElementById('difficulty-indicator');
 
-  function spawnItem() {
-    if(!gameActive || gamePaused || gameOver) return;
-    let item = items[Math.floor(Math.random() * items.length)];
-    objects.push({
-      img: item.img,
-      type: item.type,
-      width: item.width,
-      height: item.height,
-      x: 30 + Math.random() * 240,
-      y: 340,
-      speed: 0.6 + Math.random() * 1.2
-    });
-  }
-
-  // ===========================================
-  // РИСУЕМ БИЛЛА (только при проигрыше)
-  // ===========================================
-  function drawBillPopup() {
-    // Полупрозрачный чёрный фон
-    ctx.fillStyle = 'rgba(0,0,0,0.8)';
-    ctx.fillRect(0, 0, 300, 330);
-    
-    // Жёлтое свечение
-    ctx.shadowColor = '#ffff00';
-    ctx.shadowBlur = 30;
-    
-    // Треугольник Билла
-    ctx.fillStyle = '#ffff66';
-    ctx.beginPath();
-    ctx.moveTo(150, 70);
-    ctx.lineTo(80, 200);
-    ctx.lineTo(220, 200);
-    ctx.closePath();
-    ctx.fill();
-    
-    // Глаз
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.arc(150, 140, 25, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Зрачок (кошачий вертикальный)
-    ctx.fillStyle = '#000000';
-    ctx.beginPath();
-    ctx.ellipse(150, 140, 8, 20, 0, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Блик в глазу
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.arc(140, 130, 5, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Цилиндр
-    ctx.fillStyle = '#000000';
-    ctx.fillRect(130, 40, 40, 35);
-    ctx.fillRect(115, 30, 70, 15);
-    
-    // Фраза Билла
-    ctx.shadowBlur = 20;
-    ctx.fillStyle = '#ffff66';
-    ctx.font = 'bold 14px "Comic Sans MS", cursive';
-    ctx.textAlign = 'center';
-    ctx.fillText(currentBillPhrase, 150, 260);
-    
-    ctx.font = 'bold 12px "Comic Sans MS", cursive';
-    ctx.fillStyle = '#ffffff';
-    ctx.fillText('нажми СТАРТ', 150, 300);
-    
-    ctx.shadowBlur = 0;
-  }
-
-  canvas.addEventListener('pointerdown', (e) => {
-    e.preventDefault();
-    if(!gameActive || gamePaused || gameOver) return;
-    
-    const rect = canvas.getBoundingClientRect();
-    const mx = (e.clientX - rect.left) * (300/rect.width);
-    const my = (e.clientY - rect.top) * (330/rect.height);
-    
-    for(let i=objects.length-1; i>=0; i--) {
-      let obj = objects[i];
-      let dist = Math.hypot(mx - obj.x, my - obj.y);
-      if(dist < 25) {
-        if(obj.type === 'good') {
-          score += 10;
-          document.getElementById('score').innerText = score;
-        } else {
-          lives--;
-          document.getElementById('lives').innerText = lives;
-          if(lives <= 0) {
-            // Выбираем случайную обидную фразу
-            currentBillPhrase = billPhrases[Math.floor(Math.random() * billPhrases.length)];
-            gameOver = true;
-            gameActive = false;
-            messageDiv.innerText = '👁️ Билл победил! 👁️';
-          }
-        }
-        objects.splice(i, 1);
-        return;
-      }
-    }
-  });
-
-  startBtn.addEventListener('click', () => {
-    gameActive = true;
-    gamePaused = false;
-    gameOver = false;
-    score = 0;
-    lives = 3;
-    objects = [];
-    document.getElementById('score').innerText = score;
-    document.getElementById('lives').innerText = lives;
-    messageDiv.innerText = '🎮 Собирай дневники';
-    pauseBtn.innerText = '⏸️ ПАУЗА';
-  });
-
-  pauseBtn.addEventListener('click', () => {
-    if(!gameActive || gameOver) return;
-    
-    gamePaused = !gamePaused;
-    if(gamePaused) {
-      pauseBtn.innerText = '▶️ ПРОДОЛЖИТЬ';
-      messageDiv.innerText = '⏸️ Пауза. Нажми ПРОДОЛЖИТЬ';
-    } else {
-      pauseBtn.innerText = '⏸️ ПАУЗА';
-      messageDiv.innerText = '🎮 Игра продолжается!';
-    }
-  });
-
-  function gameLoop() {
-    requestAnimationFrame(gameLoop);
-    
-    // Рисуем GIF-фон
-    if(bgImage.complete) {
-      ctx.drawImage(bgImage, 0, 0, 300, 330);
-    } else {
-      ctx.fillStyle = '#3a7a3a';
-      ctx.fillRect(0, 0, 300, 330);
-    }
-    
-    if(!gameActive && !gameOver) {
-      ctx.fillStyle = 'rgba(0,0,0,0.4)';
-      ctx.fillRect(0, 0, 300, 330);
-      ctx.fillStyle = '#ffd966';
-      ctx.font = 'bold 16px "Comic Sans MS", cursive';
-      ctx.fillText('🚀 НАЖМИ СТАРТ', 60, 170);
-    }
-    
-    if(gamePaused) {
-      ctx.fillStyle = 'rgba(0,0,0,0.3)';
-      ctx.fillRect(0, 0, 300, 330);
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 28px "Comic Sans MS", cursive';
-      ctx.fillText('⏸️', 130, 180);
-    }
-    
-    if(gameOver) {
-      // Рисуем Билла поверх фона
-      drawBillPopup();
-    }
-    
-    if(gameActive && !gamePaused && !gameOver) {
-      spawnTimer++;
-      if(spawnTimer > 90) {
-        spawnItem();
-        spawnTimer = 0;
-      }
+    // --- Конфигурация игры ---
+    const CONFIG = {
+      CANVAS_WIDTH: 300,
+      CANVAS_HEIGHT: 330,
+      GOOD_SCORE: 10,
+      BAD_SCORE: -1,
+      START_LIVES: 3,
       
-      for(let i=objects.length-1; i>=0; i--) {
-        let obj = objects[i];
-        obj.y -= obj.speed;
+      // Настройки ускорения
+      SPEED_MULTIPLIER_STEP: 0.2,
+      SPAWN_RATE_STEP: 5,
+      DIFFICULTY_THRESHOLD: 100,
+      MAX_SPEED_MULTIPLIER: 2.5,
+      MIN_SPAWN_RATE: 40,
+      BASE_SPAWN_RATE: 90
+    };
+
+    // --- Игровое состояние ---
+    let gameState = {
+      active: false,
+      paused: false,
+      over: false,
+      score: 0,
+      lives: CONFIG.START_LIVES,
+      objects: [],
+      spawnTimer: 0,
+      
+      // Параметры сложности
+      difficultyLevel: 1,
+      speedMultiplier: 1.0,
+      currentSpawnRate: CONFIG.BASE_SPAWN_RATE
+    };
+
+    // --- Ресурсы (изображения) ---
+    const images = {
+      bg: new Image(),
+      startImage: new Image(), // Картинка для стартового экрана
+      diary: new Image(),
+      crystal: new Image(),
+      trash: new Image()
+    };
+    
+    images.bg.src = 'https://raw.githubusercontent.com/harbon670/my-gravity-falls/main/mystery_shack.gif';
+    images.startImage.src = 'https://raw.githubusercontent.com/harbon670/my-gravity-falls/main/pixel_art_large-8.png';
+    images.diary.src = 'https://raw.githubusercontent.com/harbon670/my-gravity-falls/main/pixel_art_large-3.png';
+    images.crystal.src = 'https://raw.githubusercontent.com/harbon670/my-gravity-falls/main/pixel_art_large-5.png';
+    images.trash.src = 'https://raw.githubusercontent.com/harbon670/my-gravity-falls/main/pixel_art_large-6.png';
+    
+    Object.values(images).forEach(img => img.crossOrigin = 'Anonymous');
+
+    // --- Типы предметов ---
+    const itemTypes = [
+      { img: images.diary, type: 'good', baseSpeed: 1.2, size: 33, weight: 40 },
+      { img: images.crystal, type: 'good', baseSpeed: 1.5, size: 30, weight: 30 },
+      { img: images.trash, type: 'bad', baseSpeed: 1.0, size: 35, weight: 30 }
+    ];
+
+    // --- Обидные фразы Билла ---
+    const billPhrases = [
+      'ХА-ХА! СЛАБАК!',
+      'ДОГОВОР НЕ ДЕЙСТВИТЕЛЕН!',
+      'Ты не в своей лиге, детка!',
+      'Расслабься, коротышка. Я здесь!',
+      'РЕАЛЬНОСТЬ СЛОМАНА!',
+      'ФОРМА И ПУСТОТА!',
+      'ХИЖИНА ИСЧЕЗЛА!',
+      'ТЫ НЕ СПАСЕШЬ МИР!'
+    ];
+    let currentBillPhrase = billPhrases[0];
+
+    // --- Загрузка изображений ---
+    let loadedImagesCount = 0;
+    const totalImagesToLoad = Object.keys(images).length;
+
+    function handleImageLoad() {
+      loadedImagesCount++;
+      if (loadedImagesCount === totalImagesToLoad) {
+        startBtn.disabled = false;
+        startBtn.textContent = '🚀 СТАРТ';
+        messageDiv.innerText = '👉 Нажми СТАРТ, чтобы начать!';
+      }
+    }
+
+    for (let key in images) {
+      images[key].addEventListener('load', handleImageLoad);
+      images[key].addEventListener('error', () => {
+        console.warn(`Ошибка загрузки изображения: ${key}`);
+        handleImageLoad();
+      });
+    }
+
+    // --- Функция выбора предмета ---
+    function getRandomItemType() {
+      const totalWeight = itemTypes.reduce((sum, type) => sum + type.weight, 0);
+      let random = Math.random() * totalWeight;
+      
+      for (const type of itemTypes) {
+        if (random < type.weight) {
+          return type;
+        }
+        random -= type.weight;
+      }
+      return itemTypes[0];
+    }
+
+    // --- Функция обновления сложности ---
+    function updateDifficulty() {
+      const newLevel = Math.floor(gameState.score / CONFIG.DIFFICULTY_THRESHOLD) + 1;
+      
+      if (newLevel !== gameState.difficultyLevel) {
+        gameState.difficultyLevel = newLevel;
         
-        if(obj.img.complete) {
-          ctx.drawImage(obj.img, obj.x - obj.width/2, obj.y - obj.height/2, obj.width, obj.height);
+        gameState.speedMultiplier = Math.min(
+          1.0 + (gameState.difficultyLevel - 1) * CONFIG.SPEED_MULTIPLIER_STEP,
+          CONFIG.MAX_SPEED_MULTIPLIER
+        );
+        
+        gameState.currentSpawnRate = Math.max(
+          CONFIG.BASE_SPAWN_RATE - (gameState.difficultyLevel - 1) * CONFIG.SPAWN_RATE_STEP,
+          CONFIG.MIN_SPAWN_RATE
+        );
+        
+        if (gameState.active && !gameState.over) {
+          messageDiv.innerText = `⚡ УРОВЕНЬ ${gameState.difficultyLevel}! ⚡`;
+          setTimeout(() => {
+            if (gameState.active && !gameState.paused && !gameState.over) {
+              messageDiv.innerText = '🎮 Игра продолжается!';
+            }
+          }, 1500);
         }
         
-        if(obj.y < -20) {
-          if(obj.type === 'good') {
-            lives--;
-            document.getElementById('lives').innerText = lives;
-            if(lives <= 0) {
-              currentBillPhrase = billPhrases[Math.floor(Math.random() * billPhrases.length)];
-              gameOver = true;
-              gameActive = false;
-              messageDiv.innerText = '🫠 Билл победил! 🫠';
+        updateDifficultyIndicator();
+      }
+    }
+    
+    function updateDifficultyIndicator() {
+      let stars = '';
+      for (let i = 0; i < Math.min(gameState.difficultyLevel, 5); i++) {
+        stars += '🌟';
+      }
+      if (gameState.difficultyLevel > 5) {
+        stars = '🌟' + gameState.difficultyLevel + 'x';
+      } else {
+        stars = stars || '🌟1x';
+      }
+      difficultyIndicator.textContent = stars;
+    }
+
+    // --- Вспомогательные функции ---
+    function updateUI() {
+      scoreSpan.innerText = gameState.score;
+      livesSpan.innerText = gameState.lives;
+    }
+
+    function resetGame() {
+      gameState.active = true;
+      gameState.paused = false;
+      gameState.over = false;
+      gameState.score = 0;
+      gameState.lives = CONFIG.START_LIVES;
+      gameState.objects = [];
+      gameState.spawnTimer = 0;
+      
+      gameState.difficultyLevel = 1;
+      gameState.speedMultiplier = 1.0;
+      gameState.currentSpawnRate = CONFIG.BASE_SPAWN_RATE;
+      
+      updateUI();
+      updateDifficultyIndicator();
+      messageDiv.innerText = '🎮 Собирай дневники!';
+      pauseBtn.innerText = '⏸️ ПАУЗА';
+    }
+
+    function gameOver() {
+      currentBillPhrase = billPhrases[Math.floor(Math.random() * billPhrases.length)];
+      gameState.over = true;
+      gameState.active = false;
+      gameState.objects = [];
+      messageDiv.innerText = '👁️ Билл победил! 👁️';
+    }
+
+    // --- Функция спавна предметов ---
+    function spawnItem() {
+      if (!gameState.active || gameState.paused || gameState.over) return;
+      
+      const type = getRandomItemType();
+      
+      gameState.objects.push({
+        img: type.img,
+        type: type.type,
+        size: type.size,
+        x: 30 + Math.random() * (CONFIG.CANVAS_WIDTH - 60),
+        y: CONFIG.CANVAS_HEIGHT - 10, // Появляется чуть выше нижней границы
+        speed: type.baseSpeed * gameState.speedMultiplier
+      });
+    }
+
+    // --- Обработка кликов ---
+    canvas.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      if (!gameState.active || gameState.paused || gameState.over) return;
+      
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = CONFIG.CANVAS_WIDTH / rect.width;
+      const scaleY = CONFIG.CANVAS_HEIGHT / rect.height;
+      
+      const mouseX = (e.clientX - rect.left) * scaleX;
+      const mouseY = (e.clientY - rect.top) * scaleY;
+      
+      for (let i = gameState.objects.length - 1; i >= 0; i--) {
+        const obj = gameState.objects[i];
+        
+        const halfSize = obj.size / 2;
+        if (mouseX > obj.x - halfSize && mouseX < obj.x + halfSize &&
+            mouseY > obj.y - halfSize && mouseY < obj.y + halfSize) {
+          
+          if (obj.type === 'good') {
+            gameState.score += CONFIG.GOOD_SCORE;
+            updateDifficulty();
+          } else {
+            gameState.lives += CONFIG.BAD_SCORE;
+            if (gameState.lives <= 0) {
+              gameState.lives = 0;
+              gameOver();
             }
           }
-          objects.splice(i, 1);
+          
+          gameState.objects.splice(i, 1);
+          updateUI();
+          return;
         }
       }
-    }
-  }
+    });
 
-  gameLoop();
+    // --- Обработчики кнопок ---
+    startBtn.addEventListener('click', () => {
+      resetGame();
+    });
+
+    pauseBtn.addEventListener('click', () => {
+      if (!gameState.active || gameState.over) return;
+      
+      gameState.paused = !gameState.paused;
+      if (gameState.paused) {
+        pauseBtn.innerText = '▶️ ПРОДОЛЖИТЬ';
+        messageDiv.innerText = '⏸️ Пауза. Нажми ПРОДОЛЖИТЬ';
+      } else {
+        pauseBtn.innerText = '⏸️ ПАУЗА';
+        messageDiv.innerText = '🎮 Игра продолжается!';
+      }
+    });
+
+    // --- Функции отрисовки ---
+    function drawBackground() {
+      if (images.bg.complete) {
+        ctx.drawImage(images.bg, 0, 0, CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT);
+      } else {
+        ctx.fillStyle = '#3a7a3a';
+        ctx.fillRect(0, 0, CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT);
+      }
+    }
+
+    function drawObjects() {
+      gameState.objects.forEach(obj => {
+        if (obj.img && obj.img.complete) {
+          ctx.drawImage(obj.img, obj.x - obj.size/2, obj.y - obj.size/2, obj.size, obj.size);
+        } else {
+          // Плейсхолдер
+          ctx.fillStyle = obj.type === 'good' ? '#ffd966' : '#ff6666';
+          ctx.beginPath();
+          ctx.arc(obj.x, obj.y, obj.size/2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      });
+    }
+
+    function drawStartScreen() {
+      // Рисуем картинку на весь экран
+      if (images.startImage.complete) {
+        ctx.drawImage(images.startImage, 0, 0, CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT);
+      } else {
+        // Если картинка не загрузилась, показываем текст
+        ctx.fillStyle = 'rgba(0,0,0,0.4)';
+        ctx.fillRect(0, 0, CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT);
+        ctx.fillStyle = '#ffd966';
+        ctx.font = 'bold 16px "Comic Sans MS", cursive';
+        ctx.fillText('🚀 НАЖМИ СТАРТ', 60, 170);
+      }
+    }
+
+    function drawOverlay() {
+      if (!gameState.active && !gameState.over) {
+        drawStartScreen();
+      }
+      
+      if (gameState.paused) {
+        ctx.fillStyle = 'rgba(0,0,0,0.3)';
+        ctx.fillRect(0, 0, CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 28px "Comic Sans MS", cursive';
+        ctx.fillText('⏸️', 130, 180);
+      }
+      
+      if (gameState.over) {
+        drawBill();
+      }
+    }
+
+    function drawBill() {
+      ctx.fillStyle = 'rgba(0,0,0,0.8)';
+      ctx.fillRect(0, 0, CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT);
+      
+      ctx.shadowColor = '#ffff00';
+      ctx.shadowBlur = 30;
+      
+      ctx.fillStyle = '#ffff66';
+      ctx.beginPath();
+      ctx.moveTo(150, 70);
+      ctx.lineTo(80, 200);
+      ctx.lineTo(220, 200);
+      ctx.closePath();
+      ctx.fill();
+      
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(150, 140, 25, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.fillStyle = '#000000';
+      ctx.beginPath();
+      ctx.ellipse(150, 140, 8, 20, 0, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(140, 130, 5, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(130, 40, 40, 35);
+      ctx.fillRect(115, 30, 70, 15);
+      
+      ctx.shadowBlur = 20;
+      ctx.fillStyle = '#ffff66';
+      ctx.font = 'bold 14px "Comic Sans MS", cursive';
+      ctx.textAlign = 'center';
+      ctx.fillText(currentBillPhrase, 150, 260);
+      
+      ctx.font = 'bold 12px "Comic Sans MS", cursive';
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText('нажми СТАРТ', 150, 300);
+      
+      ctx.shadowBlur = 0;
+      ctx.textAlign = 'left';
+    }
+
+    // --- Игровой цикл ---
+    function gameLoop() {
+      // Обновление логики
+      if (gameState.active && !gameState.paused && !gameState.over) {
+        // Спавн новых предметов
+        gameState.spawnTimer++;
+        if (gameState.spawnTimer >= gameState.currentSpawnRate) {
+          spawnItem();
+          gameState.spawnTimer = 0;
+        }
+        
+        // Движение и удаление предметов
+        for (let i = gameState.objects.length - 1; i >= 0; i--) {
+          const obj = gameState.objects[i];
+          
+          // Двигаем предмет вверх
+          obj.y -= obj.speed;
+          
+          // Проверяем, улетел ли предмет за верхнюю границу
+          if (obj.y + obj.size/2 < 0) {
+            if (obj.type === 'good') {
+              gameState.lives--;
+              if (gameState.lives <= 0) {
+                gameState.lives = 0;
+                gameOver();
+              }
+            }
+            gameState.objects.splice(i, 1);
+          }
+        }
+        
+        updateUI();
+      }
+
+      // Отрисовка
+      drawBackground();
+      drawObjects();
+      drawOverlay();
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    // Запускаем игру
+    gameLoop();
+  })();
 </script>
 </body>
 </html>
