@@ -259,7 +259,7 @@
     // --- Ресурсы (изображения) ---
     const images = {
       bg: new Image(),
-      startImage: new Image(), // Картинка для стартового экрана
+      startImage: new Image(),
       diary: new Image(),
       crystal: new Image(),
       trash: new Image()
@@ -415,7 +415,7 @@
         type: type.type,
         size: type.size,
         x: 30 + Math.random() * (CONFIG.CANVAS_WIDTH - 60),
-        y: CONFIG.CANVAS_HEIGHT - 10, // Появляется чуть выше нижней границы
+        y: CONFIG.CANVAS_HEIGHT - 10, // Появляются у нижнего края
         speed: type.baseSpeed * gameState.speedMultiplier
       });
     }
@@ -432,6 +432,7 @@
       const mouseX = (e.clientX - rect.left) * scaleX;
       const mouseY = (e.clientY - rect.top) * scaleY;
       
+      // Проходим с конца, чтобы кликать по верхним предметам
       for (let i = gameState.objects.length - 1; i >= 0; i--) {
         const obj = gameState.objects[i];
         
@@ -450,6 +451,7 @@
             }
           }
           
+          // Удаляем сразу, без задержек
           gameState.objects.splice(i, 1);
           updateUI();
           return;
@@ -477,39 +479,92 @@
 
     // --- Функции отрисовки ---
     function drawBackground() {
-      if (images.bg.complete) {
+      // Всегда рисуем фон, если он загружен
+      if (images.bg.complete && images.bg.naturalWidth > 0) {
         ctx.drawImage(images.bg, 0, 0, CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT);
       } else {
+        // Если гифка не загрузилась - запасной вариант
         ctx.fillStyle = '#3a7a3a';
         ctx.fillRect(0, 0, CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT);
+        
+        // Рисуем силуэт хижины для атмосферы
+        ctx.fillStyle = '#2a5a2a';
+        ctx.beginPath();
+        ctx.moveTo(50, 280);
+        ctx.lineTo(250, 280);
+        ctx.lineTo(250, 150);
+        ctx.lineTo(200, 100);
+        ctx.lineTo(150, 130);
+        ctx.lineTo(100, 100);
+        ctx.lineTo(50, 150);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Окна
+        ctx.fillStyle = '#f9e9c9';
+        ctx.fillRect(120, 170, 30, 40);
+        ctx.fillRect(180, 170, 30, 40);
       }
     }
 
     function drawObjects() {
       gameState.objects.forEach(obj => {
-        if (obj.img && obj.img.complete) {
+        if (obj.img && obj.img.complete && obj.img.naturalWidth > 0) {
+          // Нормальная отрисовка
           ctx.drawImage(obj.img, obj.x - obj.size/2, obj.y - obj.size/2, obj.size, obj.size);
         } else {
-          // Плейсхолдер
+          // Плейсхолдер если картинка не загрузилась
           ctx.fillStyle = obj.type === 'good' ? '#ffd966' : '#ff6666';
           ctx.beginPath();
           ctx.arc(obj.x, obj.y, obj.size/2, 0, Math.PI * 2);
           ctx.fill();
+          
+          // Добавляем эмодзи для понятности
+          ctx.fillStyle = '#000000';
+          ctx.font = '16px Arial';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(obj.type === 'good' ? '📓' : '📦', obj.x, obj.y);
         }
       });
     }
 
     function drawStartScreen() {
-      // Рисуем картинку на весь экран
-      if (images.startImage.complete) {
+      if (images.startImage.complete && images.startImage.naturalWidth > 0) {
         ctx.drawImage(images.startImage, 0, 0, CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT);
       } else {
-        // Если картинка не загрузилась, показываем текст
-        ctx.fillStyle = 'rgba(0,0,0,0.4)';
+        // Рисуем красивую заставку с Биллом
+        ctx.fillStyle = 'rgba(0,0,0,0.7)';
         ctx.fillRect(0, 0, CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT);
+        
+        // Рисуем Билла
+        ctx.shadowColor = '#ffff00';
+        ctx.shadowBlur = 20;
+        ctx.fillStyle = '#ffff66';
+        ctx.beginPath();
+        ctx.moveTo(150, 80);
+        ctx.lineTo(90, 180);
+        ctx.lineTo(210, 180);
+        ctx.closePath();
+        ctx.fill();
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(150, 130, 20, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.fillStyle = '#000000';
+        ctx.beginPath();
+        ctx.ellipse(150, 130, 6, 15, 0, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.shadowBlur = 0;
+        
         ctx.fillStyle = '#ffd966';
-        ctx.font = 'bold 16px "Comic Sans MS", cursive';
-        ctx.fillText('🚀 НАЖМИ СТАРТ', 60, 170);
+        ctx.font = 'bold 18px "Comic Sans MS", cursive';
+        ctx.textAlign = 'center';
+        ctx.fillText('🚀 НАЖМИ СТАРТ', 150, 250);
+        ctx.textAlign = 'left';
       }
     }
 
@@ -560,10 +615,6 @@
       ctx.beginPath();
       ctx.arc(140, 130, 5, 0, Math.PI * 2);
       ctx.fill();
-      
-      ctx.fillStyle = '#000000';
-      ctx.fillRect(130, 40, 40, 35);
-      ctx.fillRect(115, 30, 70, 15);
       
       ctx.shadowBlur = 20;
       ctx.fillStyle = '#ffff66';
