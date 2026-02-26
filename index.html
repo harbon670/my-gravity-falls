@@ -217,6 +217,21 @@
   let objects = [];
   let spawnTimer = 0;
   
+  // Обидные фразы Билла (каждый раз разные)
+  const billPhrases = [
+    'ХА-ХА! СЛАБАК!',
+    'ДОГОВОР НЕ ДЕЙСТВИТЕЛЕН!',
+    'Ты не в своей лиге, детка!',
+    'Расслабься, коротышка. Я здесь!',
+    'РЕАЛЬНОСТЬ СЛОМАНА!',
+    'ФОРМА И ПУСТОТА!',
+    'ХИЖИНА ИСЧЕЗЛА!',
+    'ТЫ НЕ СПАСЕШЬ МИР!'
+  ];
+  
+  // Текущая фраза Билла
+  let currentBillPhrase = billPhrases[0];
+  
   // Элементы интерфейса
   const startBtn = document.getElementById('startBtn');
   const pauseBtn = document.getElementById('pauseBtn');
@@ -265,6 +280,64 @@
     });
   }
 
+  // ===========================================
+  // РИСУЕМ БИЛЛА (только при проигрыше)
+  // ===========================================
+  function drawBillPopup() {
+    // Полупрозрачный чёрный фон
+    ctx.fillStyle = 'rgba(0,0,0,0.8)';
+    ctx.fillRect(0, 0, 300, 330);
+    
+    // Жёлтое свечение
+    ctx.shadowColor = '#ffff00';
+    ctx.shadowBlur = 30;
+    
+    // Треугольник Билла
+    ctx.fillStyle = '#ffff66';
+    ctx.beginPath();
+    ctx.moveTo(150, 70);
+    ctx.lineTo(80, 200);
+    ctx.lineTo(220, 200);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Глаз
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(150, 140, 25, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Зрачок (кошачий вертикальный)
+    ctx.fillStyle = '#000000';
+    ctx.beginPath();
+    ctx.ellipse(150, 140, 8, 20, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Блик в глазу
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(140, 130, 5, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Цилиндр
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(130, 40, 40, 35);
+    ctx.fillRect(115, 30, 70, 15);
+    
+    // Фраза Билла
+    ctx.shadowBlur = 20;
+    ctx.fillStyle = '#ffff66';
+    ctx.font = 'bold 14px "Comic Sans MS", cursive';
+    ctx.textAlign = 'center';
+    ctx.fillText(currentBillPhrase, 150, 260);
+    
+    ctx.font = 'bold 12px "Comic Sans MS", cursive';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText('нажми СТАРТ', 150, 300);
+    
+    ctx.shadowBlur = 0;
+  }
+
   canvas.addEventListener('pointerdown', (e) => {
     e.preventDefault();
     if(!gameActive || gamePaused || gameOver) return;
@@ -284,9 +357,11 @@
           lives--;
           document.getElementById('lives').innerText = lives;
           if(lives <= 0) {
+            // Выбираем случайную обидную фразу
+            currentBillPhrase = billPhrases[Math.floor(Math.random() * billPhrases.length)];
             gameOver = true;
             gameActive = false;
-            messageDiv.innerText = '💔 Игра окончена! Нажми СТАРТ';
+            messageDiv.innerText = '👁️ Билл победил! 👁️';
           }
         }
         objects.splice(i, 1);
@@ -304,7 +379,7 @@
     objects = [];
     document.getElementById('score').innerText = score;
     document.getElementById('lives').innerText = lives;
-    messageDiv.innerText = '🎮 Собирай дневники и кристаллы!';
+    messageDiv.innerText = '🎮 Собирай дневники';
     pauseBtn.innerText = '⏸️ ПАУЗА';
   });
 
@@ -349,14 +424,8 @@
     }
     
     if(gameOver) {
-      ctx.fillStyle = 'rgba(0,0,0,0.6)';
-      ctx.fillRect(0, 0, 300, 330);
-      ctx.fillStyle = '#ffb366';
-      ctx.font = 'bold 18px "Comic Sans MS", cursive';
-      ctx.fillText('GAME OVER', 70, 160);
-      ctx.fillStyle = '#ffd966';
-      ctx.font = '16px "Comic Sans MS", cursive';
-      ctx.fillText('очки: ' + score, 110, 210);
+      // Рисуем Билла поверх фона
+      drawBillPopup();
     }
     
     if(gameActive && !gamePaused && !gameOver) {
@@ -379,9 +448,10 @@
             lives--;
             document.getElementById('lives').innerText = lives;
             if(lives <= 0) {
+              currentBillPhrase = billPhrases[Math.floor(Math.random() * billPhrases.length)];
               gameOver = true;
               gameActive = false;
-              messageDiv.innerText = '💔 Игра окончена! Нажми СТАРТ';
+              messageDiv.innerText = '🫠 Билл победил! 🫠';
             }
           }
           objects.splice(i, 1);
