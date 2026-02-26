@@ -222,9 +222,9 @@
   const pauseBtn = document.getElementById('pauseBtn');
   const messageDiv = document.getElementById('message');
   
-  // Загружаем фон
+  // Загружаем GIF-фон
   const bgImage = new Image();
-  bgImage.src = 'https://raw.githubusercontent.com/harbon670/my-gravity-falls/main/pixel_art_large.png';
+  bgImage.src = 'https://raw.githubusercontent.com/harbon670/my-gravity-falls/main/mystery_shack.gif';
   bgImage.crossOrigin = 'Anonymous';
   
   // Картинки предметов (33px)
@@ -233,7 +233,7 @@
     diary2: loadImage('https://raw.githubusercontent.com/harbon670/my-gravity-falls/main/pixel_art_large-2.png'),
     diary3: loadImage('https://raw.githubusercontent.com/harbon670/my-gravity-falls/main/pixel_art_large-1.png'),
     crystal: loadImage('https://raw.githubusercontent.com/harbon670/my-gravity-falls/main/pixel_art_large-4.png'),
-    trash: loadImage('https://raw.githubusercontent.com/harbon670/my-gravity-falls/main/pixel_art_large-5.png')
+    trash: loadImage('https://raw.githubusercontent.com/harbon670/my-gravity-falls/main/pixel_art_large-4.png')
   };
   
   function loadImage(src) {
@@ -247,7 +247,7 @@
     { img: itemImages.diary1, type: 'good', width: 33, height: 33 },
     { img: itemImages.diary2, type: 'good', width: 33, height: 33 },
     { img: itemImages.diary3, type: 'good', width: 33, height: 33 },
-    { img: itemImages.crystal, type: 'bad', width: 33, height: 33 },
+    { img: itemImages.crystal, type: 'good', width: 33, height: 33 },
     { img: itemImages.trash, type: 'bad', width: 33, height: 33 }
   ];
 
@@ -324,6 +324,7 @@
   function gameLoop() {
     requestAnimationFrame(gameLoop);
     
+    // Рисуем GIF-фон
     if(bgImage.complete) {
       ctx.drawImage(bgImage, 0, 0, 300, 330);
     } else {
